@@ -1,411 +1,320 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  ArrowUpRight,
+  Building2,
+  CheckCircle2,
+  CircleDot,
+  Clock3,
+  Plus,
+  Search,
+  Settings,
+  Sparkles,
+} from "lucide-react";
 import type { Company } from "@/app/page";
 
-type Props = {
+type DashboardProps = {
   companies: Company[];
 };
 
-function getStatus(status: Company["research_status"]) {
+const navigation = [
+  { label: "Inicio", icon: Sparkles, active: true },
+  { label: "Scout", icon: Search },
+  { label: "Empresas", icon: Building2 },
+  { label: "Configuración", icon: Settings },
+];
+
+function getStatusLabel(status: Company["research_status"]) {
+  if (status === "verified") return "Verificada";
+  if (status === "partial") return "Parcial";
+  return "Insuficiente";
+}
+
+function getStatusStyles(status: Company["research_status"]) {
   if (status === "verified") {
-    return {
-      label: "Verificado",
-      className: "badge badge-success",
-    };
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
 
   if (status === "partial") {
-    return {
-      label: "Parcial",
-      className: "badge badge-warning",
-    };
+    return "border-amber-200 bg-amber-50 text-amber-700";
   }
 
-  return {
-    label: "Insuficiente",
-    className: "badge badge-danger",
-  };
+  return "border-slate-200 bg-slate-50 text-slate-600";
 }
 
-function getScoreClass(score: number) {
-  if (score >= 85) return "score score-high";
-  if (score >= 70) return "score score-medium";
-  return "score score-low";
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-UY", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
-export default function Dashboard({ companies }: Props) {
-  const [search, setSearch] = useState("");
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-
-  const filteredCompanies = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    if (!query) return companies;
-
-    return companies.filter((company) =>
-      [
-        company.company_name,
-        company.industry,
-        company.city,
-        company.country,
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(query),
-    );
-  }, [companies, search]);
-
-  const highScore = companies.filter((company) => company.score >= 85).length;
-  const verified = companies.filter(
+export default function Dashboard({ companies }: DashboardProps) {
+  const verifiedCompanies = companies.filter(
     (company) => company.research_status === "verified",
   ).length;
 
   const averageScore = Math.round(
     companies.reduce((total, company) => total + company.score, 0) /
-      companies.length,
+    companies.length,
   );
 
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <div>
-          <div className="brand">
-            <div className="brand-logo">A</div>
+    <main className="min-h-screen bg-[#f7f8fb] text-slate-950">
+      <div className="mx-auto flex min-h-screen max-w-[1600px]">
+        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white px-5 py-6 lg:flex lg:flex-col">
+          <div className="flex items-center gap-3 px-2">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-slate-950 text-sm font-bold text-white">
+              A
+            </div>
 
             <div>
-              <strong>AASOS</strong>
-              <span>SatWeb Scout</span>
+              <p className="font-semibold tracking-tight">AASOS</p>
+              <p className="text-xs text-slate-500">AI Sales Operating System</p>
             </div>
           </div>
 
-          <nav className="navigation">
-            <button className="navigation-item navigation-item-active">
-              <span className="navigation-icon">⌂</span>
-              Dashboard
-            </button>
+          <nav className="mt-10 space-y-1">
+            {navigation.map((item) => {
+              const Icon = item.icon;
 
-            <button className="navigation-item">
-              <span className="navigation-icon">▦</span>
-              Empresas
-            </button>
-
-            <button className="navigation-item">
-              <span className="navigation-icon">⌕</span>
-              Búsquedas
-            </button>
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  className={[
+                    "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition",
+                    item.active
+                      ? "bg-slate-950 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+                  ].join(" ")}
+                >
+                  <Icon size={17} strokeWidth={1.8} />
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
-        </div>
 
-        <div className="system-card">
-          <div className="system-title">
-            <span className="live-dot" />
-            Sistema operativo
-          </div>
+          <div className="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-slate-900">
+              <CircleDot size={16} className="text-emerald-500" />
+              Scout activo
+            </div>
 
-          <p>Scout, API y base de datos conectados.</p>
-        </div>
-      </aside>
-
-      <main className="main">
-        <header className="header">
-          <div>
-            <p className="eyebrow">Panel comercial</p>
-            <h1>Prospectos encontrados</h1>
-            <p className="subtitle">
-              Empresas investigadas y calificadas automáticamente para SatWeb.
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              Analizando empresas de servicios técnicos y mantenimiento.
             </p>
           </div>
+        </aside>
 
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() =>
-              alert("Este botón se conectará al Scout más adelante.")
-            }
-          >
-            <span>＋</span>
-            Buscar empresas
-          </button>
-        </header>
-
-        <section className="metrics">
-          <MetricCard
-            title="Prospectos"
-            value={companies.length}
-            detail="Empresas almacenadas"
-            icon="▦"
-          />
-
-          <MetricCard
-            title="Alta afinidad"
-            value={highScore}
-            detail="Score igual o superior a 85"
-            icon="↗"
-          />
-
-          <MetricCard
-            title="Verificados"
-            value={verified}
-            detail="Investigación confirmada"
-            icon="✓"
-          />
-
-          <MetricCard
-            title="Score promedio"
-            value={averageScore}
-            suffix="/100"
-            detail="Calidad general"
-            icon="◎"
-          />
-        </section>
-
-        <section className="panel">
-          <div className="panel-header">
+        <section className="min-w-0 flex-1">
+          <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white px-5 sm:px-8 lg:px-10">
             <div>
-              <h2>Empresas</h2>
-              <p>Ordenadas por afinidad comercial con SatWeb.</p>
+              <p className="text-sm text-slate-500">Panel comercial</p>
+              <h1 className="text-lg font-semibold tracking-tight">SatWeb Scout</h1>
             </div>
 
-            <div className="search">
-              <span>⌕</span>
-
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar empresa..."
-              />
-            </div>
-          </div>
-
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Empresa</th>
-                  <th>Industria</th>
-                  <th>Ubicación</th>
-                  <th>Estado</th>
-                  <th>Score</th>
-                  <th>Actualización</th>
-                  <th />
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredCompanies.map((company) => {
-                  const status = getStatus(company.research_status);
-
-                  return (
-                    <tr
-                      key={company.id}
-                      onClick={() => setSelectedCompany(company)}
-                    >
-                      <td>
-                        <div className="company">
-                          <div className="company-avatar">
-                            {company.company_name.charAt(0)}
-                          </div>
-
-                          <div>
-                            <strong>{company.company_name}</strong>
-                            <span>
-                              {company.website.replace(/^https?:\/\//, "")}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td>{company.industry}</td>
-
-                      <td>
-                        {company.city}, {company.country}
-                      </td>
-
-                      <td>
-                        <span className={status.className}>
-                          {status.label}
-                        </span>
-                      </td>
-
-                      <td>
-                        <span className={getScoreClass(company.score)}>
-                          {company.score}
-                        </span>
-                      </td>
-
-                      <td className="date">
-                        {formatDate(company.updated_at)}
-                      </td>
-
-                      <td className="arrow">→</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="panel-footer">
-            Mostrando {filteredCompanies.length} de {companies.length} empresas
-          </div>
-        </section>
-      </main>
-
-      {selectedCompany && (
-        <div className="drawer-container">
-          <button
-            type="button"
-            className="drawer-overlay"
-            aria-label="Cerrar"
-            onClick={() => setSelectedCompany(null)}
-          />
-
-          <aside className="drawer">
-            <header className="drawer-header">
-              <span>Detalle del prospecto</span>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="hidden rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:block"
+              >
+                Ver actividad
+              </button>
 
               <button
                 type="button"
-                onClick={() => setSelectedCompany(null)}
+                className="flex size-10 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white"
               >
-                ×
+                GF
               </button>
-            </header>
-
-            <div className="drawer-content">
-              <div className="drawer-company">
-                <div className="drawer-avatar">
-                  {selectedCompany.company_name.charAt(0)}
-                </div>
-
-                <div>
-                  <h2>{selectedCompany.company_name}</h2>
-                  <p>{selectedCompany.industry}</p>
-                </div>
-              </div>
-
-              <div className="drawer-score">
-                <span
-                  className={getScoreClass(selectedCompany.score)}
-                >
-                  {selectedCompany.score}
-                </span>
-
-                <div>
-                  <strong>Score comercial</strong>
-                  <p>Alta afinidad con SatWeb</p>
-                </div>
-              </div>
-
-              <section className="detail-section">
-                <h3>Información</h3>
-
-                <DetailRow
-                  label="Sitio web"
-                  value={selectedCompany.website}
-                />
-
-                <DetailRow
-                  label="Ubicación"
-                  value={`${selectedCompany.city}, ${selectedCompany.country}`}
-                />
-
-                <DetailRow
-                  label="Estado"
-                  value={getStatus(selectedCompany.research_status).label}
-                />
-
-                <DetailRow
-                  label="Última actualización"
-                  value={formatDate(selectedCompany.updated_at)}
-                />
-              </section>
-
-              <section className="detail-section">
-                <h3>Por qué encaja con SatWeb</h3>
-
-                <p className="detail-text">
-                  Opera con personal técnico en terreno y necesita coordinar
-                  mantenimientos, evidencias, clientes y equipos distribuidos.
-                </p>
-              </section>
-
-              <section className="detail-section">
-                <h3>Servicios detectados</h3>
-
-                <div className="tags">
-                  <span>Mantenimiento</span>
-                  <span>Servicio técnico</span>
-                  <span>Emergencias</span>
-                </div>
-              </section>
-
-              <a
-                href={selectedCompany.website}
-                target="_blank"
-                rel="noreferrer"
-                className="website-button"
-              >
-                Visitar sitio web ↗
-              </a>
             </div>
-          </aside>
-        </div>
-      )}
-    </div>
-  );
-}
+          </header>
 
-function MetricCard({
-  title,
-  value,
-  detail,
-  icon,
-  suffix,
-}: {
-  title: string;
-  value: number;
-  detail: string;
-  icon: string;
-  suffix?: string;
-}) {
-  return (
-    <article className="metric-card">
-      <div className="metric-top">
-        <span>{title}</span>
-        <div className="metric-icon">{icon}</div>
+          <div className="px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+            <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+              <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.45fr_0.8fr] lg:p-10">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
+                    <Sparkles size={14} />
+                    Resumen del Scout
+                  </div>
+
+                  <h2 className="mt-6 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl lg:text-5xl">
+                    Buenos días, Germán.
+                  </h2>
+
+                  <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+                    El Scout encontró{" "}
+                    <span className="font-semibold text-slate-950">
+                      18 empresas nuevas
+                    </span>{" "}
+                    listas para revisar y contactar.
+                  </p>
+
+                  <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    >
+                      <Plus size={17} />
+                      Nueva investigación
+                    </button>
+
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Ver empresas
+                      <ArrowUpRight size={17} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-950">
+                        Scout activo
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Investigación en curso
+                      </p>
+                    </div>
+
+                    <div className="flex size-10 items-center justify-center rounded-full bg-white shadow-sm">
+                      <Search size={18} />
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex items-end justify-between">
+                    <div>
+                      <p className="text-4xl font-semibold tracking-tight">72%</p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Progreso de investigación
+                      </p>
+                    </div>
+
+                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      En ejecución
+                    </span>
+                  </div>
+
+                  <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-200">
+                    <div className="h-full w-[72%] rounded-full bg-slate-950" />
+                  </div>
+
+                  <div className="mt-6 flex items-center gap-2 text-xs text-slate-500">
+                    <Clock3 size={14} />
+                    Última actualización hace 4 minutos
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="mt-6 grid gap-4 sm:grid-cols-3">
+              <article className="rounded-2xl border border-slate-200 bg-white p-5">
+                <p className="text-sm text-slate-500">Empresas encontradas</p>
+                <p className="mt-3 text-3xl font-semibold tracking-tight">
+                  {companies.length}
+                </p>
+              </article>
+
+              <article className="rounded-2xl border border-slate-200 bg-white p-5">
+                <p className="text-sm text-slate-500">Verificadas</p>
+                <p className="mt-3 text-3xl font-semibold tracking-tight">
+                  {verifiedCompanies}
+                </p>
+              </article>
+
+              <article className="rounded-2xl border border-slate-200 bg-white p-5">
+                <p className="text-sm text-slate-500">Score promedio</p>
+                <p className="mt-3 text-3xl font-semibold tracking-tight">
+                  {averageScore}
+                </p>
+              </article>
+            </section>
+
+            <section className="mt-10">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-violet-700">
+                    Oportunidades destacadas
+                  </p>
+                  <h3 className="mt-1 text-2xl font-semibold tracking-tight">
+                    Empresas recomendadas
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  className="hidden text-sm font-semibold text-slate-600 transition hover:text-slate-950 sm:block"
+                >
+                  Ver todas
+                </button>
+              </div>
+
+              <div className="mt-5 grid gap-4 xl:grid-cols-3">
+                {companies.map((company) => (
+                  <article
+                    key={company.id}
+                    className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lg"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-700">
+                        {company.company_name.slice(0, 2).toUpperCase()}
+                      </div>
+
+                      <span
+                        className={[
+                          "rounded-full border px-2.5 py-1 text-xs font-semibold",
+                          getStatusStyles(company.research_status),
+                        ].join(" ")}
+                      >
+                        {getStatusLabel(company.research_status)}
+                      </span>
+                    </div>
+
+                    <div className="mt-5">
+                      <h4 className="text-lg font-semibold tracking-tight text-slate-950">
+                        {company.company_name}
+                      </h4>
+
+                      <p className="mt-1 text-sm text-slate-500">
+                        {company.city}, {company.country}
+                      </p>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.14em] text-slate-400">
+                          Score
+                        </p>
+                        <p className="mt-1 text-2xl font-semibold">
+                          {company.score}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-xs uppercase tracking-[0.14em] text-slate-400">
+                          Industria
+                        </p>
+                        <p className="mt-1 max-w-40 text-sm font-medium text-slate-700">
+                          {company.industry}
+                        </p>
+                      </div>
+                    </div>
+
+                    <a
+                      href={company.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-5 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition group-hover:bg-slate-100"
+                    >
+                      Ver empresa
+                      <ArrowUpRight size={16} />
+                    </a>
+                  </article>
+                ))}
+              </div>
+            </section>
+          </div>
+        </section>
       </div>
-
-      <strong>
-        {value}
-        {suffix && <small>{suffix}</small>}
-      </strong>
-
-      <p>{detail}</p>
-    </article>
-  );
-}
-
-function DetailRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="detail-row">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
+    </main>
   );
 }
