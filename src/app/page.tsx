@@ -1,53 +1,57 @@
 import Dashboard from "@/components/dashboard";
+import { db } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 export type Company = {
-  id: number;
-  company_name: string;
-  website: string;
-  country: string;
-  city: string;
-  industry: string;
-  score: number;
-  research_status: "verified" | "partial" | "insufficient";
-  updated_at: string;
+    id: number;
+    company_name: string;
+    website: string;
+    description: string | null;
+    industry: string | null;
+    company_summary: string | null;
+    services: string | null;
+    location: string | null;
+    contact_email: string | null;
+    contact_phone: string | null;
+    satweb_fit_score: number | null;
+    pain_points: string | null;
+    status: string | null;
+    enrichment_status?: string | null;
+    is_company?: boolean | null;
+    ai_score?: number | null;
+    created_at: string;
 };
 
-const companies: Company[] = [
-  {
-    id: 1,
-    company_name: "Sotecsa Ascensores S.A.",
-    website: "https://sotecsa.cl",
-    country: "Chile",
-    city: "Viña del Mar",
-    industry: "Ascensores",
-    score: 88,
-    research_status: "verified",
-    updated_at: "2026-07-20T02:11:01.992Z",
-  },
-  {
-    id: 2,
-    company_name: "Clima Técnica Chile",
-    website: "https://climatecnica.cl",
-    country: "Chile",
-    city: "Santiago",
-    industry: "HVAC",
-    score: 82,
-    research_status: "partial",
-    updated_at: "2026-07-19T21:00:00.000Z",
-  },
-  {
-    id: 3,
-    company_name: "Energía Respaldo SpA",
-    website: "https://energiarespaldo.cl",
-    country: "Chile",
-    city: "Concepción",
-    industry: "Grupos electrógenos",
-    score: 76,
-    research_status: "verified",
-    updated_at: "2026-07-18T18:30:00.000Z",
-  },
-];
+export default async function HomePage() {
+    const { rows } = await db.query<Company>(`
+    SELECT
+      id,
+      company_name,
+      website,
+      description,
+      industry,
+      company_summary,
+      services,
+      location,
+      contact_email,
+      contact_phone,
+      satweb_fit_score,
+      pain_points,
+      status,
+      enrichment_status,
+      is_company,
+      ai_score,
+      created_at
+    FROM leads
+    WHERE enrichment_status = 'PROCESSED'
+      AND is_company = true
+      AND COALESCE(status, 'NEW') NOT IN ('REJECTED', 'DISCARDED')
+    ORDER BY
+      satweb_fit_score DESC NULLS LAST,
+      ai_score DESC NULLS LAST,
+      created_at DESC
+  `);
 
-export default function Home() {
-  return <Dashboard companies={companies} />;
+    return <Dashboard companies={rows} />;
 }
