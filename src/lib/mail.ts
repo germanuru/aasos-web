@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import path from "path";
 import { db } from "@/lib/db";
 
 type MailConfiguration = {
@@ -20,6 +21,15 @@ const MAIL_SETTING_KEYS = [
     "smtp_password",
     "smtp_ssl",
 ] as const;
+
+// Imagen de firma (banner con logo, datos de contacto, etc).
+// Debe existir en /public/firma-avance-software.png
+const SIGNATURE_IMAGE_PATH = path.join(
+    process.cwd(),
+    "public",
+    "firma-avance-software.png",
+);
+const SIGNATURE_IMAGE_CID = "aasos-firma";
 
 async function getMailConfiguration(): Promise<MailConfiguration> {
     const { rows } = await db.query<{
@@ -114,6 +124,17 @@ export async function verifyMailConnection() {
     };
 }
 
+function escapeHtml(value: string) {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function bodyToHtml(body: string) {
+    return escapeHtml(body).replace(/\n/g, "<br>");
+}
+
 type SendMailInput = {
     to: string;
     subject: string;
@@ -128,6 +149,19 @@ export async function sendMail({
     const { transporter, config } =
         await createMailTransporter();
 
+    const html = `
+    <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #1a1a1a; line-height: 1.6;">
+      <div>${bodyToHtml(body)}</div>
+      <div style="margin-top: 28px;">
+        <img
+          src="cid:${SIGNATURE_IMAGE_CID}"
+          alt="${escapeHtml(config.senderName)} - Avance Software"
+          style="max-width: 480px; width: 100%; height: auto; display: block; border: 0;"
+        />
+      </div>
+    </div>
+  `;
+
     const result = await transporter.sendMail({
         from: {
             name: config.senderName,
@@ -136,6 +170,14 @@ export async function sendMail({
         to,
         subject,
         text: body,
+        html,
+        attachments: [
+            {
+                filename: "firma-avance-software.png",
+                path: SIGNATURE_IMAGE_PATH,
+                cid: SIGNATURE_IMAGE_CID,
+            },
+        ],
     });
 
     return {

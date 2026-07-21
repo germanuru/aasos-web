@@ -4,27 +4,32 @@ import { db } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export type Company = {
-    id: number;
-    company_name: string;
-    website: string;
-    description: string | null;
-    industry: string | null;
-    company_summary: string | null;
-    services: string | null;
-    location: string | null;
-    contact_email: string | null;
-    contact_phone: string | null;
-    satweb_fit_score: number | null;
-    pain_points: string | null;
-    status: string | null;
-    enrichment_status?: string | null;
-    is_company?: boolean | null;
-    ai_score?: number | null;
-    created_at: string;
+  id: number;
+  company_name: string;
+  website: string;
+  description: string | null;
+  industry: string | null;
+  company_summary: string | null;
+  services: string | null;
+  location: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  satweb_fit_score: number | null;
+  pain_points: string | null;
+  status: string | null;
+  enrichment_status?: string | null;
+  is_company?: boolean | null;
+  ai_score?: number | null;
+  created_at: string;
+  source: string | null;
+  linkedin_url: string | null;
+  decision_maker_name: string | null;
+  decision_maker_title: string | null;
+  decision_maker_linkedin: string | null;
 };
 
 export default async function HomePage() {
-    const { rows } = await db.query<Company>(`
+  const { rows } = await db.query<Company>(`
     SELECT
       id,
       company_name,
@@ -42,7 +47,12 @@ export default async function HomePage() {
       enrichment_status,
       is_company,
       ai_score,
-      created_at
+      created_at,
+      source,
+      linkedin_url,
+      decision_maker_name,
+      decision_maker_title,
+      decision_maker_linkedin
     FROM leads
     WHERE enrichment_status = 'PROCESSED'
       AND is_company = true
@@ -53,5 +63,5 @@ export default async function HomePage() {
       created_at DESC
   `);
 
-    return <Dashboard companies={rows} />;
+  return <Dashboard companies={rows} />;
 }

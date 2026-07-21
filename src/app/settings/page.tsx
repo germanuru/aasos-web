@@ -9,11 +9,35 @@ import {
   Settings,
 } from "lucide-react";
 
+export type Company = {
+  id: number;
+  company_name: string;
+  website: string;
+  description: string | null;
+  status: string | null;
+  satweb_fit_score: number | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  industry: string | null;
+  location: string | null;
+  company_summary: string | null;
+  services: string | null;
+  created_at: string;
+  source: string | null;
+  linkedin_url: string | null;
+  decision_maker_name: string | null;
+  decision_maker_title: string | null;
+  decision_maker_linkedin: string | null;
+};
+
 type SettingsForm = {
   email_subject: string;
   email_template: string;
   email_signature: string;
   calendly_url: string;
+  sender_email: string;
+  smtp_user: string;
+  smtp_password: string;
 };
 
 const initialSettings: SettingsForm = {
@@ -21,6 +45,9 @@ const initialSettings: SettingsForm = {
   email_template: "",
   email_signature: "",
   calendly_url: "",
+  sender_email: "",
+  smtp_user: "",
+  smtp_password: "",
 };
 
 export default function SettingsPage() {
@@ -52,6 +79,10 @@ export default function SettingsPage() {
         setSettings({
           ...initialSettings,
           ...data,
+          // La contraseña nunca viaja desde el servidor; el campo
+          // arranca vacío y solo se sobreescribe si el usuario
+          // carga una nueva.
+          smtp_password: "",
         });
       } catch (error) {
         setErrorMessage(
@@ -202,6 +233,57 @@ export default function SettingsPage() {
                   placeholder="https://calendly.com/..."
                 />
               </Field>
+
+              <div className="border-t border-slate-100 pt-6">
+                <h2 className="text-sm font-semibold text-slate-900">
+                  Envío de correo (SMTP Zoho)
+                </h2>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Necesario para que el botón &quot;Enviar mail&quot; del
+                  dashboard funcione.
+                </p>
+
+                <div className="mt-4 space-y-6">
+                  <Field label="Email remitente (Zoho)">
+                    <input
+                      type="email"
+                      value={settings.sender_email}
+                      onChange={(event) =>
+                        updateField("sender_email", event.target.value)
+                      }
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+                      placeholder="ventas@avancesoftware.com"
+                    />
+                  </Field>
+
+                  <Field label="Usuario SMTP">
+                    <input
+                      type="text"
+                      value={settings.smtp_user}
+                      onChange={(event) =>
+                        updateField("smtp_user", event.target.value)
+                      }
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+                      placeholder="Normalmente igual al email remitente"
+                    />
+                  </Field>
+
+                  <Field
+                    label="Contraseña de aplicación SMTP"
+                    help="Se genera en Zoho Mail (no tu contraseña normal de la cuenta). Dejar vacío mantiene la contraseña ya guardada."
+                  >
+                    <input
+                      type="password"
+                      value={settings.smtp_password}
+                      onChange={(event) =>
+                        updateField("smtp_password", event.target.value)
+                      }
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+                      placeholder="••••••••"
+                    />
+                  </Field>
+                </div>
+              </div>
 
               {successMessage && (
                 <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
